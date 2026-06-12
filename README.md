@@ -138,7 +138,7 @@ def get_connection():
         host='localhost',       # Your database host
         database='sales_intelligence_hub',  # Database name
         port='5432',           # PostgreSQL port
-        password='sohail4'     # Your PostgreSQL password
+        password='*****'     # Your PostgreSQL password
     )
 ```
 
