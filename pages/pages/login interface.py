@@ -43,8 +43,8 @@ if st.session_state.user is None:
         else:
             st.error("❌ Wrong username or password")
 else:
-    st.success(f"✅ Logged in as {st.session_state.user['username']}")
-    st.info("👈 Use the sidebar to navigate to Dashboard or Query Center")
+    st.success(f" Logged in as {st.session_state.user['username']}")
+    st.info(" Use the sidebar to navigate to Dashboard or Query Center")
 
     if st.button("Logout"):
         st.session_state.user = None
