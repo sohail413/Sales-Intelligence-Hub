@@ -7,7 +7,7 @@ def get_connection():
         host='localhost',
         database='sales_intelligence_hub',
         port='5432',
-        password='sohail4'
+        password='******'
     )
 
 USERS = {
