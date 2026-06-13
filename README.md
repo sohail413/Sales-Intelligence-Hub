@@ -327,15 +327,7 @@ WHERE trigger_schema = 'public'
 ORDER BY event_object_table;
 ```
 
-Drop all triggers if needed:
-```sql
-DROP TRIGGER trigger_update_sales_status ON payment_splits;
-DROP TRIGGER trigger_update_received_amount ON payment_splits;
-DROP TRIGGER trigger_calculate_pending_amount ON payment_splits;
-DROP FUNCTION update_sales_status();
-DROP FUNCTION update_received_amount();
-DROP FUNCTION calculate_pending_amount();
-```
+
 
 Trigger Summary Table
 
@@ -358,7 +350,7 @@ def get_connection():
         host='localhost',       # Your database host
         database='sales_intelligence_hub',  # Database name
         port='5432',           # PostgreSQL port
-        password='sohail4'     # Your PostgreSQL password
+        password='*****'     # Your PostgreSQL password
     )
 ```
 
@@ -595,18 +587,7 @@ pip install -r requirements.txt
 - Restrict database user permissions to minimum required access
 - Review and audit branch-level data access regularly
 
-## Future Enhancements
 
-- Email notifications for data changes and alerts
-- Export reports to PDF and Excel formats
-- Advanced filtering and search capabilities
-- Additional data visualization charts and dashboards
-- User activity and audit logs
-- Email and password reset functionality
-- Two-factor authentication
-- API integration for external systems
-- Mobile application version
-- Real-time data synchronization
 
 ## System Requirements
 
