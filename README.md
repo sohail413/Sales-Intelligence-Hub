@@ -125,6 +125,226 @@ CREATE TABLE users (
 );
 ```
 
+## PostgreSQL Triggers
+
+Triggers are automated database actions that execute when specific events occur. This project uses triggers to automatically update sales status based on payment status.
+
+Trigger 1: Update Sales Status Based on Pending Amount
+
+Purpose: Automatically update the status of a sale to 'open' or 'close' based on whether there is a pending amount remaining.
+
+When it executes: After any INSERT or UPDATE on the payment_splits table
+
+Logic:
+- If pending_amount > 0: Set status to 'open' (payment still pending)
+- If pending_amount = 0: Set status to 'close' (payment completed)
+
+Create the trigger function:
+```sql
+CREATE OR REPLACE FUNCTION update_sales_status()
+RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE customer_sales
+    SET status = CASE 
+                    WHEN pending_amount > 0 THEN 'open'
+                    WHEN pending_amount = 0 THEN 'close'
+                 END
+    WHERE customer_sales.sale_id = NEW.sale_id;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+Create the trigger:
+```sql
+CREATE TRIGGER trigger_update_sales_status
+AFTER INSERT OR UPDATE ON payment_splits
+FOR EACH ROW
+EXECUTE FUNCTION update_sales_status();
+```
+
+How it works:
+1. User inserts or updates a payment record in payment_splits table
+2. Trigger automatically fires
+3. It calculates pending_amount for that sale
+4. Updates the status field in customer_sales based on pending_amount
+5. No manual status updates needed - it's automatic
+
+Example scenario:
+- Sale has gross_sales = 10000, received_amount = 7000, pending_amount = 3000
+- Status becomes 'open'
+- User records another payment of 3000
+- pending_amount becomes 0
+- Trigger automatically updates status to 'close'
+
+Benefits:
+- Data consistency: Status always reflects actual payment status
+- No manual updates: Automatic status changes
+- Real-time accuracy: Instant updates whenever payments are recorded
+- Error prevention: Eliminates manual status update mistakes
+
+View created triggers:
+```sql
+SELECT trigger_name, event_object_table, action_statement 
+FROM information_schema.triggers 
+WHERE trigger_schema = 'public';
+```
+
+Drop a trigger if needed:
+```sql
+DROP TRIGGER trigger_update_sales_status ON payment_splits;
+DROP FUNCTION update_sales_status();
+```
+
+Trigger 2: Update Received Amount Based on Payments
+
+Purpose: Automatically calculate the total received amount by summing all payments from the payment_splits table for a specific sale.
+
+When it executes: After any INSERT or UPDATE on the payment_splits table
+
+Logic: Sum all amount_paid values in payment_splits where sale_id matches the new record, then update the received_amount in customer_sales.
+
+Create the trigger function:
+```sql
+CREATE OR REPLACE FUNCTION update_received_amount()
+RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE customer_sales
+    SET received_amount = (
+        SELECT SUM(payment_splits.amount_paid)
+        FROM payment_splits
+        WHERE payment_splits.sale_id = NEW.sale_id
+    )
+    WHERE customer_sales.sale_id = NEW.sale_id;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+Create the trigger:
+```sql
+CREATE TRIGGER trigger_update_received_amount
+AFTER INSERT OR UPDATE ON payment_splits
+FOR EACH ROW
+EXECUTE FUNCTION update_received_amount();
+```
+
+How it works:
+1. User records a payment in payment_splits table
+2. Trigger automatically fires
+3. It sums all payments for that sale_id
+4. Updates the received_amount field in customer_sales
+5. No manual calculation needed
+
+Example scenario:
+- Sale has gross_sales = 10000
+- User records payment 1: 5000 (Cash)
+- Trigger updates received_amount to 5000
+- User records payment 2: 3000 (UPI)
+- Trigger updates received_amount to 8000 (5000 + 3000)
+- User records payment 3: 2000 (Card)
+- Trigger updates received_amount to 10000 (5000 + 3000 + 2000)
+
+Benefits:
+- Accurate received amount tracking
+- Handles multiple payment methods automatically
+- No manual amount entry needed
+- Real-time calculation
+- Prevents calculation errors
+
+Trigger 3: Calculate Pending Amount Automatically
+
+Purpose: Automatically calculate the pending amount by subtracting received_amount from gross_sales.
+
+When it executes: After any INSERT or UPDATE on the payment_splits table (after Trigger 2 updates received_amount)
+
+Logic: pending_amount = gross_sales - received_amount
+
+Create the trigger function:
+```sql
+CREATE OR REPLACE FUNCTION calculate_pending_amount()
+RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE customer_sales
+    SET pending_amount = gross_sales - received_amount
+    WHERE customer_sales.sale_id = NEW.sale_id;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+Create the trigger:
+```sql
+CREATE TRIGGER trigger_calculate_pending_amount
+AFTER INSERT OR UPDATE ON payment_splits
+FOR EACH ROW
+EXECUTE FUNCTION calculate_pending_amount();
+```
+
+How it works:
+1. User records a payment in payment_splits table
+2. Trigger 2 updates received_amount
+3. Trigger 3 fires and calculates pending_amount
+4. pending_amount = gross_sales - received_amount
+5. No manual pending calculation needed
+
+Example scenario:
+- Sale has gross_sales = 10000, received_amount = 0, pending_amount = 10000
+- User records payment of 3000
+- Trigger 2 updates received_amount to 3000
+- Trigger 3 calculates pending_amount = 10000 - 3000 = 7000
+- User records payment of 4000
+- Trigger 2 updates received_amount to 7000
+- Trigger 3 calculates pending_amount = 10000 - 7000 = 3000
+
+Benefits:
+- Automatic pending calculation
+- Always accurate
+- No manual calculations
+- Instant updates
+- Eliminates rounding errors
+
+Complete Trigger Execution Flow
+
+When a payment is recorded:
+```
+Payment inserted into payment_splits
+        ↓
+Trigger 2 fires: Recalculates received_amount (SUM of all payments)
+        ↓
+Trigger 3 fires: Recalculates pending_amount (gross_sales - received_amount)
+        ↓
+Trigger 1 fires: Updates status ('open' or 'close' based on pending_amount)
+        ↓
+All three amounts and status are now updated automatically
+```
+
+View all triggers:
+```sql
+SELECT trigger_name, event_object_table, action_statement 
+FROM information_schema.triggers 
+WHERE trigger_schema = 'public'
+ORDER BY event_object_table;
+```
+
+Drop all triggers if needed:
+```sql
+DROP TRIGGER trigger_update_sales_status ON payment_splits;
+DROP TRIGGER trigger_update_received_amount ON payment_splits;
+DROP TRIGGER trigger_calculate_pending_amount ON payment_splits;
+DROP FUNCTION update_sales_status();
+DROP FUNCTION update_received_amount();
+DROP FUNCTION calculate_pending_amount();
+```
+
+Trigger Summary Table
+
+| Trigger Name | Function | Executes | Updates |
+|---|---|---|---|
+| trigger_update_received_amount | Sum all payments | After INSERT/UPDATE on payment_splits | received_amount |
+| trigger_calculate_pending_amount | Subtract from gross | After INSERT/UPDATE on payment_splits | pending_amount |
+| trigger_update_sales_status | Check if fully paid | After INSERT/UPDATE on payment_splits | status |
+
 ## Configuration
 
 Update Database Credentials
@@ -138,7 +358,7 @@ def get_connection():
         host='localhost',       # Your database host
         database='sales_intelligence_hub',  # Database name
         port='5432',           # PostgreSQL port
-        password='*****'     # Your PostgreSQL password
+        password='sohail4'     # Your PostgreSQL password
     )
 ```
 
@@ -375,7 +595,18 @@ pip install -r requirements.txt
 - Restrict database user permissions to minimum required access
 - Review and audit branch-level data access regularly
 
+## Future Enhancements
 
+- Email notifications for data changes and alerts
+- Export reports to PDF and Excel formats
+- Advanced filtering and search capabilities
+- Additional data visualization charts and dashboards
+- User activity and audit logs
+- Email and password reset functionality
+- Two-factor authentication
+- API integration for external systems
+- Mobile application version
+- Real-time data synchronization
 
 ## System Requirements
 
