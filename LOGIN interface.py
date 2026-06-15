@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import psycopg2
 
-# ── 1. Database Connection ────────────────────────
+
 def get_connection():
     return psycopg2.connect(
         user='postgres',
@@ -12,7 +12,7 @@ def get_connection():
         password='******'
     )
 
-# ── 2. Users ──────────────────────────────────────
+
 USERS = {
     "superadmin":       {"password": "super", "branch_id": 0},
     "admin_chennai":    {"password": "che", "branch_id": 1},
@@ -24,15 +24,15 @@ USERS = {
     "admin_kolkata":    {"password": "kol", "branch_id": 7},
     "admin_ahmedabad":  {"password": "ahm", "branch_id": 8},
 }
-# ✅ Fix 1: branch_id are integers now, not strings like "0","1"
 
-# ── 3. Fetch Data ─────────────────────────────────
+
+
 def get_cust_data(table_name, branch_id):
     conn = get_connection()
     cur = conn.cursor()
 
     if branch_id == 0:  
-        # ✅ Fix 2: use == not "is" for comparison
+        
         cur.execute(f"SELECT * FROM {table_name} LIMIT 1000")
     else:
         cur.execute(f"SELECT * FROM {table_name} WHERE branch_id = %s LIMIT 1000", (branch_id,))
@@ -43,11 +43,11 @@ def get_cust_data(table_name, branch_id):
     conn.close()
     return col_names, rows
 
-# ── 4. Session State ──────────────────────────────
+
 if "user" not in st.session_state:
     st.session_state.user = None
 
-# ── 5. Page Title ─────────────────────────────────
+
 st.title("WELCOME TO SALES INTELLIGENCE HUB")
 
 st.info(" Hi Admins " \
@@ -57,7 +57,7 @@ st.info(" Hi Admins " \
 " - QUERY CENTRE"
 " - VIEW SALES DATA"       )
 
-# ── 6. Login Form ─────────────────────────────────
+
 if st.session_state.user is None:
     st.subheader("🔐 Login")
 
@@ -65,7 +65,7 @@ if st.session_state.user is None:
     password = st.text_input("Password", type="password")
 
     if st.button("Login"):  
-        # ✅ Fix 3: Login button is now INSIDE the if block
+        
         user = USERS.get(username)
         if user and user["password"] == password:
             st.session_state.user = {
@@ -74,11 +74,11 @@ if st.session_state.user is None:
             }
             st.rerun()
         else:
-            st.error("❌ Wrong username or password")
+            st.error(" Wrong username or password")
 
-# ── 7. Dashboard ──────────────────────────────────
+
 else:
-    # ✅ Fix 4: Check username not USERS dict for role
+    
     name      = st.session_state.user["username"]
     branch_id = st.session_state.user["branch_id"]
 
