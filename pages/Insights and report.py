@@ -4,12 +4,12 @@ import psycopg2
 import plotly.express as px
 import plotly.graph_objects as go
 
-# ── Guard ─────────────────────────────────────────
+
 if "user" not in st.session_state or st.session_state.user is None:
     st.warning(" Please login first from the main page")
     st.stop()
 
-# ── Connection ────────────────────────────────────
+
 def get_connection():
     return psycopg2.connect(
         user='postgres',
@@ -29,12 +29,12 @@ def run_query(query, params=None):
     conn.close()
     return pd.DataFrame(rows, columns=cols)
 
-# ── User Info ─────────────────────────────────────
+
 name      = st.session_state.user["username"]
 branch_id = st.session_state.user["branch_id"]
 is_super  = (name == "superadmin")
 
-# ── Page Header ───────────────────────────────────
+
 st.title(" Insights & Reporting")
 if is_super:
     st.info("Super Admin — Viewing ALL branches")
@@ -43,9 +43,9 @@ else:
 
 st.divider()
 
-# ══════════════════════════════════════════════════
+
 # 1. OVERALL BUSINESS REVENUE
-# ══════════════════════════════════════════════════
+
 st.subheader("  Overall Business Revenue")
 
 try:
@@ -76,13 +76,13 @@ try:
     col4.metric(" Total Pending",  f"₹{float(df_revenue['total_pending'][0]):,.2f}")
 
 except Exception as e:
-    st.error(f"❌ Revenue error: {e}")
+    st.error(f" Revenue error: {e}")
 
 st.divider()
 
-# ══════════════════════════════════════════════════
+
 # 2. BRANCH-WISE SALES COMPARISON
-# ══════════════════════════════════════════════════
+
 st.subheader("🏢 Branch-wise Sales Comparison")
 
 try:
@@ -124,13 +124,13 @@ try:
     st.dataframe(df_branch, use_container_width=True)
 
 except Exception as e:
-    st.error(f"❌ Branch comparison error: {e}")
+    st.error(f" Branch comparison error: {e}")
 
 st.divider()
 
-# ══════════════════════════════════════════════════
+
 # 3. RECEIVED VS PENDING
-# ══════════════════════════════════════════════════
+
 st.subheader(" Total Received vs Total Pending")
 
 try:
@@ -171,9 +171,9 @@ except Exception as e:
 
 st.divider()
 
-# ══════════════════════════════════════════════════
+
 # 4. PENDING COLLECTION PERCENTAGE
-# ══════════════════════════════════════════════════
+
 st.subheader(" Pending Collection Percentage")
 
 try:
@@ -219,9 +219,9 @@ except Exception as e:
 
 st.divider()
 
-# ══════════════════════════════════════════════════
+
 # 5. PAYMENT METHOD ANALYSIS
-# ══════════════════════════════════════════════════
+
 st.subheader(" Payment Method Analysis (Cash / UPI / Card)")
 
 try:
@@ -272,9 +272,9 @@ except Exception as e:
 
 st.divider()
 
-# ══════════════════════════════════════════════════
+
 # 6. SALES TRENDS & GROWTH
-# ══════════════════════════════════════════════════
+
 st.subheader(" Sales Trends & Growth")
 
 try:
@@ -330,9 +330,9 @@ except Exception as e:
 
 st.divider()
 
-# ══════════════════════════════════════════════════
+
 # 7. BRANCH PERFORMANCE SUMMARY
-# ══════════════════════════════════════════════════
+
 st.subheader(" Branch Performance Summary")
 
 try:
