@@ -2,12 +2,12 @@ import streamlit as st
 import pandas as pd
 import psycopg2
 
-# ── Guard: must be logged in ──────────────────────
+
 if "user" not in st.session_state or st.session_state.user is None:
-    st.warning("⛔ Please login first from the main page")
+    st.warning(" Please login first from the main page")
     st.stop()
 
-# ── Connection ────────────────────────────────────
+
 def get_connection():
     return psycopg2.connect(
         user='postgres',
@@ -23,7 +23,7 @@ branch_id = st.session_state.user["branch_id"]
 st.title("Query Center")
 st.divider()
 
-# ── Ready-made questions ──────────────────────────
+# queries
 BASIC_QUERIES = {
     "Retrieve all records from the customer_sales table":       "SELECT * FROM CUSTOMER_SALES",
     "Retrive all records from branches table":                  "SELECT * FROM BRANCHES",
@@ -51,7 +51,7 @@ FINANCIAL_TRACKING_QUERIES = {
     "Calculate payment method-wise total collection.":          "SELECT sum(amount_paid) as Total_Amount, payment_method FROM payment_splits GROUP BY payment_method",
 }
 
-# ── Smart filter appender ─────────────────────────
+# 
 def append_branch_filter(query, branch_id):
     """Safely appends branch_id filter without breaking existing WHERE/GROUP BY clauses."""
     q = query.strip().rstrip(";")
@@ -69,7 +69,7 @@ def append_branch_filter(query, branch_id):
     else:
         return q + f" WHERE branch_id = {branch_id}"
 
-# ── Query runner ──────────────────────────────────
+
 def run_preset_query(query, branch_id):
     conn = get_connection()
     cur = conn.cursor()
@@ -84,7 +84,7 @@ def run_preset_query(query, branch_id):
         cur.close()
         conn.close()
 
-# ── Reusable display block ────────────────────────
+# 
 def display_query_result(query_dict, selected_key):
     """Runs query and shows result or a friendly message — never a raw error."""
     try:
@@ -102,7 +102,7 @@ def display_query_result(query_dict, selected_key):
     except Exception:
         st.warning("⚠️ This report is not available for your branch. Please contact your admin.")
 
-# ── UI Sections ───────────────────────────────────
+
 
 st.subheader("Basic Queries")
 basic_selected = st.selectbox("Select a question", list(BASIC_QUERIES.keys()), key="basic")
