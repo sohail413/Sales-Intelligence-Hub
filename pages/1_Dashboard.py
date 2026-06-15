@@ -2,12 +2,12 @@ import streamlit as st
 import pandas as pd
 import psycopg2
 
-# ── Guard: must be logged in ──────────────────────
+
 if "user" not in st.session_state or st.session_state.user is None:
     st.warning(" Please login first from the main page")
     st.stop()
 
-# ── Connection ────────────────────────────────────
+
 def get_connection():
     return psycopg2.connect(
         user='postgres',
@@ -17,13 +17,13 @@ def get_connection():
         password='*****'
     )
 
-# ── User info ─────────────────────────────────────
+
 name      = st.session_state.user["username"]
 branch_id = st.session_state.user["branch_id"]
 
 TABLES = ["customer_sales", "payment_splits", "users", "branches"]
 
-# ── Auto detect primary key ───────────────────────
+
 def get_primary_key(table_name):
     conn = get_connection()
     cur = conn.cursor()
@@ -40,7 +40,7 @@ def get_primary_key(table_name):
     conn.close()
     return result[0] if result else None
 
-# ── Fetch data ────────────────────────────────────
+
 def get_table_data(table_name, branch_id):
     conn = get_connection()
     cur = conn.cursor()
@@ -57,7 +57,7 @@ def get_table_data(table_name, branch_id):
     conn.close()
     return cols, rows
 
-# ── Update ────────────────────────────────────────
+
 def update_row(table_name, primary_key, pk_value, updated_data):
     conn = get_connection()
     cur = conn.cursor()
@@ -68,7 +68,7 @@ def update_row(table_name, primary_key, pk_value, updated_data):
     cur.close()
     conn.close()
 
-# ── Add ───────────────────────────────────────────
+
 def add_row(table_name, new_data):
     conn = get_connection()
     cur = conn.cursor()
@@ -79,7 +79,7 @@ def add_row(table_name, new_data):
     cur.close()
     conn.close()
 
-# ── Delete ────────────────────────────────────────
+
 def delete_row(table_name, primary_key, pk_value):
     conn = get_connection()
     cur = conn.cursor()
@@ -88,7 +88,7 @@ def delete_row(table_name, primary_key, pk_value):
     cur.close()
     conn.close()
 
-# ── Page ──────────────────────────────────────────
+
 if name == "superadmin":
     st.title(" Dashboard — Super Admin")
     st.info("You can view and edit all branches")
@@ -111,7 +111,7 @@ else:
     st.dataframe(df, use_container_width=True)
     st.divider()
 
-    # ── Edit ──────────────────────────────────────
+    
     st.subheader(" Add sales entry")
     pk_values = df[pk].tolist()
     selected_pk = st.selectbox(f"Select {pk} to edit", pk_values)
@@ -138,7 +138,7 @@ else:
 
     st.divider()
 
-    # ── Add ───────────────────────────────────────
+    
     st.subheader(" Add New sales")
     new_data = {}
     with st.form("add_form"):
@@ -160,7 +160,7 @@ else:
 
     st.divider()
 
-    # ── Delete ────────────────────────────────────
+    
     st.subheader("Delete entry")
     delete_pk = st.selectbox(f"Select {pk} to delete", pk_values, key="delete")
 
