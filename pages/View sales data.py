@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import psycopg2
 
-# ── 1. Database Connection ────────────────────────
+
 def get_connection():
     return psycopg2.connect(
         user='postgres',
@@ -27,11 +27,11 @@ def get_cust_data(table_name, branch_id):
     conn.close()
     return col_names, rows
 
-# ── 4. Session State ──────────────────────────────
+
 if "user" not in st.session_state:
     st.session_state.user = None
 
-# ── 5. Page Title ─────────────────────────────────
+
 st.title("SALES DATA")
 
 name      = st.session_state.user["username"]
